@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">NumeroMagico</string>
+    <string name="initial_instructs">Esse app vai advinhar qualquer número que você
+        pensar entre 0 e 1000 em no máximo 10 tentativas. Dúvida? </string>
+    <string name="initial_instructs2">Vamos jogar! Pense em um número entre 0 e 1000</string>
+</resources>
