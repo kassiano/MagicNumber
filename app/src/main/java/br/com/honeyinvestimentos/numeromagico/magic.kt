@@ -2,18 +2,6 @@ package br.com.honeyinvestimentos.numeromagico
 
 import java.util.*
 
-/*
-min =250
-max =500
-
- > 500 ? N
-
- > 250 ? S
-
- >
-
-432
- */
 
 fun IntRange.random() = Random().nextInt((endInclusive + 1) - start) + start
 

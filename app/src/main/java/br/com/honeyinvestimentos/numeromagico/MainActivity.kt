@@ -1,23 +1,20 @@
 package br.com.honeyinvestimentos.numeromagico
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.os.SystemClock
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
-import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.okButton
-import org.jetbrains.anko.uiThread
 
 class MainActivity : AppCompatActivity() {
 
-
-    var nMax = 1000
-    var nMin = 0
-    var guessedNumber =0
-    var qtdTentativas =0
+    val viewModel by lazy {
+        ViewModelProviders.of(this).get(MainViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,20 +36,20 @@ class MainActivity : AppCompatActivity() {
 
         btErrou.setOnClickListener {
 
-            showNewTryAlert("O número que você está pensando é maior ou menor que $guessedNumber")
+            showNewTryAlert("O número que você está pensando é maior ou menor que ${viewModel.guessedNumber.value}")
 
         }
+
+        observeGuessedNumber()
+        observeShowingProgress()
+        observeTries()
     }
 
 
     fun initGame(){
-        nMax = 1000
-        nMin = 0
-        qtdTentativas = 0
-        guessedNumber = 0
+       viewModel.initValues()
         linearResult.visibility = View.GONE
-
-        makeGuess()
+        viewModel.makeGuess()
     }
 
     fun showProgress(){
@@ -65,47 +62,52 @@ class MainActivity : AppCompatActivity() {
         linearResult.visibility = View.VISIBLE
     }
 
-    fun updateTries(){
-        qtdTentativas++
-        tvTentativas.text = "Tentativas: $qtdTentativas"
+    fun observeShowingProgress(){
+        viewModel.showingProgress.observe(this, Observer {
+            showing->
+
+            showing?.let {
+
+                if(it)
+                    showProgress()
+                else
+                    hideProgress()
+            }
+        })
     }
 
-    fun makeGuess(){
+    fun observeTries(){
 
-        showProgress()
+        viewModel.tries.observe(this, Observer{
+            qtdTentativas->
 
-        doAsync {
-            SystemClock.sleep(1000)
-
-            if(qtdTentativas==0){
-
-                guessedNumber = (nMin..nMax).random()
-
-            }else{
-                guessedNumber = guessThinkNumber(nMax, nMin)
+            qtdTentativas?.let {
+                tvTentativas.text = "Tentativas: $it"
             }
 
+        })
+    }
 
-            uiThread {
+    fun observeGuessedNumber(){
 
-                tvNumberGuessed.text = "$guessedNumber ?"
+        viewModel.guessedNumber.observe(this, Observer {
+            number->
 
-                hideProgress()
-                updateTries()
+            number?.let {
+                tvNumberGuessed.text = "$it ?"
             }
-        }
-
+        })
     }
 
 
     fun numberIsHigher(){
-        nMin = guessedNumber
-        makeGuess()
+        viewModel.nMin.value =  viewModel.guessedNumber.value
+        viewModel.makeGuess()
     }
 
     fun numberIsLower(){
-        nMax = guessedNumber
-        makeGuess()
+        viewModel.nMax.value = viewModel.guessedNumber.value
+        viewModel.makeGuess()
     }
 
     fun showNewTryAlert(msg:String){
